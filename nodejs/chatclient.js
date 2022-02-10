@@ -26,7 +26,7 @@ function connect() {
 
   serverUrl = "ws://localhost:8080";
 
-  connection = new WebSocket(serverUrl);
+  connection = new WebSocket(serverUrl, "json");
   console.log("***CREATED WEBSOCKET");
 
   connection.onopen = function (evt) {
@@ -39,19 +39,26 @@ function connect() {
   connection.onmessage = function (evt) {
     console.log("***ONMESSAGE");
     var f = document.getElementById("chatbox").contentDocument;
-    console.log("Message received: ");
+    var text = "";
+    var msg = JSON.parse(evt.data);
+    console.log("Message received: " + evt.data);
 
     if (evt.data.length) {
-      f.write(evt.data);
-      document.getElementById("chatbox").contentWindow.scrollByPages(1);
+      f.write(msg.value + "<br />");
     }
   };
   console.log("***CREATED ONMESSAGE");
 }
 
 function send() {
-  console.log("***SEND");
-  connection.send(document.getElementById("text").value);
+  // console.log("***SEND");
+  // connection.send(document.getElementById("text").value);
+  // document.getElementById("text").value = "";
+  var msg = {
+    messageType: "game",
+    value: document.getElementById("text").value,
+  };
+  connection.send(JSON.stringify(msg));
   document.getElementById("text").value = "";
 }
 

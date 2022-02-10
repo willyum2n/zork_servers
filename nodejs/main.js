@@ -4,35 +4,51 @@ const { spawn } = require("child_process");
 
 // Creating a new websocket server
 const wss = new WebSocketServer.Server({ port: 8080 });
+const path = require("path");
 
-// Creating connection using websocket
 wss.on("connection", (ws) => {
   console.log("new client connected. Creating Zork process for this client...");
 
   // Spin up a new Zork process and connect it to the Websocket
-  const zorkProc = spawn("zork");
+  // *** NOTE *** Requires the zork_source repo side-by-side with the zork-server repo
+  const zorkProc = spawn(
+    path.join(process.env.PWD, "..", "..", "zork_source", "zork")
+  );
 
-  // Get our hooks into the Zork Process and attach it to websocket
+  // Connect zork (stdout) to XMT side of the websock
   zorkProc.stdout.on("data", (data) => {
     console.log(`[zorkProc.stdout] ${data}`);
-    ws.send(data);
+    let msg = {
+      messageType: "game",
+      // Clean up the data coming from the zork process. We are going to reading this with TTS
+      value: data
+        .toString()
+        .replace(/\r?\n|\r?\t/g, " ")
+        .slice(0, -1),
+    };
+    ws.send(JSON.stringify(msg));
   });
+
   zorkProc.stderr.on("data", (data) => {
     console.error(`[zorkProc.stderr] ${data}`);
   });
+
   zorkProc.on("error", (error) => {
     console.error(`[zorkProc.error] ${error.message}`);
   });
 
   zorkProc.on("close", (code) => {
-    console.log(`zorkProc.close] exitcode: ${code}`);
+    console.log(`[zorkProc.close] exitcode: ${code}`);
   });
 
-  // Connect websocket to Zork proc stdin
+  // Connect zork (stdin) to RCV side of the  websocket
   console.log("Attaching websocket to zork stdin");
   ws.on("message", (data) => {
-    console.log(`[ws.message] ${data}`);
-    zorkProc.send(data + "\n");
+    let msg = JSON.parse(data);
+    console.log(
+      `[ws.message] messageType=${msg.messageType}, value:${msg.value}`
+    );
+    zorkProc.stdin.write(msg.value + "\n");
   });
 
   // handling what to do when clients disconnects from server
@@ -42,8 +58,8 @@ wss.on("connection", (ws) => {
     zorkProc.kill();
   });
   // handling client connection error
-  ws.onerror = function () {
-    console.log("Some Error occurred");
+  ws.onerror = function (event) {
+    console.log("[ws.onError] Some Error occurred:", event);
   };
 });
 
