@@ -10,10 +10,7 @@ wss.on("connection", (ws) => {
   console.log("new client connected. Creating Zork process for this client...");
 
   // Spin up a new Zork process and connect it to the Websocket
-  // *** NOTE *** Requires the zork_source repo side-by-side with the zork-server repo
-  const zorkProc = spawn(
-    path.join(process.env.PWD, "..", "..", "zork_source", "zork")
-  );
+  const zorkProc = spawn(path.join(process.env.PWD, "zork"));
 
   // Connect zork (stdout) to XMT side of the websock
   zorkProc.stdout.on("data", (data) => {
