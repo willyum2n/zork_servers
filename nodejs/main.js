@@ -3,7 +3,8 @@ const WebSocketServer = require("ws");
 const { spawn } = require("child_process");
 
 // Creating a new websocket server
-const wss = new WebSocketServer.Server({ port: 8080 });
+const wsPort = 6910;
+const wss = new WebSocketServer.Server({ port: wsPort });
 const path = require("path");
 
 const MSGTYPE_ADMIN = "admin";
@@ -104,4 +105,4 @@ wss.on("connection", (ws) => {
   };
 });
 
-console.log("[main] The WebSocket server is running on port 8080");
+console.log(`[main] The WebSocket server is running on port ${wsPort}`);

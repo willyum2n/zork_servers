@@ -24,8 +24,9 @@ function connect() {
     scheme += "s";
   }
 
-  serverUrl = "ws://localhost:8080";
+  serverUrl = "ws://vork.willpowerware.io:6910";
 
+  alert("Connecting to: " + serverUrl);
   connection = new WebSocket(serverUrl, "json");
   console.log("***CREATED WEBSOCKET");
 
